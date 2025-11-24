@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="text-center mb-4">
+  <h1 class="fw-bold">Find Recipes Based on What You Have</h1>
+  <p class="text-secondary">
+    Enter the ingredients you currently have and get smart recommendations instantly.
+  </p>
+</div>
+
+<!-- Search Card -->
+<div class="card bg-dark border-secondary shadow-sm mx-auto" style="max-width: 600px;">
+  <div class="card-body">
+    <form id="searchForm">
+      <label class="form-label">Enter Ingredients (comma separated)</label>
+      <input type="text" id="ingredientsInput" class="form-control"
+             placeholder="e.g. rice, onion, chicken" required>
+
+      <button type="submit" class="btn btn-primary w-100 mt-3">
+        Search Recipes
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Results Section -->
+<div id="results" class="mt-5"></div>
+
+<script>
+  // On submit → call /recommend API
+  document.getElementById("searchForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const input = document.getElementById("ingredientsInput").value.trim();
+    const ingredients = input.split(",").map(i => i.trim().toLowerCase());
+
+    const response = await fetch("http://127.0.0.1:8000/recommend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ingredients: ingredients })
+    });
+
+    const data = await response.json();
+    displayResults(data);
+  });
+
+  function displayResults(data) {
+    const container = document.getElementById("results");
+    container.innerHTML = "";
+
+    if (!data.top_5_recommendations || data.top_5_recommendations.length === 0) {
+      container.innerHTML = `<p class="text-danger text-center">No recipes found.</p>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <h3 class="mb-3">Top Recommendations</h3>
+    `;
+
+    data.top_5_recommendations.forEach(rec => {
+      container.innerHTML += `
+        <div class="card bg-dark border-secondary mb-3">
+          <div class="card-body">
+            <h5 class="card-title">${rec.recipe_name}</h5>
+            <p class="text-secondary">Match Score: <b>${rec.match_score}%</b></p>
+
+            <a href="/recipe/${rec.meal_id}?user_ingredients=${data.your_ingredients.join(",")}"
+               class="btn btn-outline-primary btn-sm">
+              View Details
+            </a>
+          </div>
+        </div>
+      `;
+    });
+  }
+</script>
+
+{% endblock %}

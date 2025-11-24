@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="text-center mb-4">
+  <h1 class="fw-bold">Smart Recipe Search</h1>
+  <p class="text-secondary">
+    Search any ingredient or dish name and explore recipes instantly 🍽️
+  </p>
+</div>
+
+<!-- Search Form -->
+<div class="card bg-dark border-secondary shadow-sm mx-auto" style="max-width: 600px;">
+  <div class="card-body">
+    <form method="get" action="/ui/search">
+      <label class="form-label text-light">Search Recipes</label>
+      <input type="text" class="form-control" name="name" placeholder="e.g. chicken, pasta, rice"
+             value="{{ query if query else '' }}" required>
+
+      <button class="btn btn-primary w-100 mt-3">Search 🔍</button>
+    </form>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="container mt-4">
+
+  {% if query %}
+    <h3 class="text-center mb-3">
+      Results for: <span class="text-primary">{{ query }}</span>
+    </h3>
+  {% endif %}
+
+  {% if results %}
+    {% for meal in results %}
+      <div class="card bg-dark text-light border-secondary mb-4 p-3">
+
+        <div class="d-flex gap-3">
+          <img src="{{ meal.thumbnail }}" style="width:160px;height:160px;border-radius:10px;object-fit:cover;">
+
+          <div>
+            <h4 class="fw-bold">{{ meal.name }}</h4>
+
+            <p style="max-width:600px;max-height:70px;overflow:hidden;text-overflow:ellipsis;">
+              {{ meal.recipe.instructions }}
+            </p>
+
+            <button onclick="toggleIngredients({{ loop.index }})"
+                    class="btn btn-outline-primary btn-sm">
+              View Ingredients
+            </button>
+
+            <div id="ing{{ loop.index }}" class="mt-2 p-3 bg-secondary rounded" style="display:none;">
+              <ul>
+                {% for ing in meal.recipe.ingredients %}
+                  <li>{{ ing.item }} — {{ ing.measure }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    {% endfor %}
+  {% elif query %}
+    <p class="text-danger text-center">No recipes found.</p>
+  {% endif %}
+
+</div>
+
+<script>
+  function toggleIngredients(id) {
+    let box = document.getElementById("ing" + id);
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+</script>
+
+{% endblock %}

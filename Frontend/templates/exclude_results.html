@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Results for "{{ query }}"</h2>
+    <p class="text-muted">Excluded: {{ excluded }}</p>
+
+    {% if results %}
+        <div class="row mt-3">
+            {% for meal in results %}
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <!-- FIXED: correct key is strMealThumb -->
+                    <img src="{{ meal.strMealThumb }}" class="card-img-top" />
+
+                    <div class="card-body">
+                        <!-- FIXED: correct key is strMeal -->
+                        <h5 class="card-title">{{ meal.strMeal }}</h5>
+
+                        <!-- FIXED: correct ID key is idMeal -->
+                        <a href="/recipe/{{ meal.idMeal }}" class="btn btn-outline-primary btn-sm">
+                            View Recipe
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-danger mt-4">No results matched your inclusion and exclusion filters.</p>
+    {% endif %}
+</div>
+{% endblock %}

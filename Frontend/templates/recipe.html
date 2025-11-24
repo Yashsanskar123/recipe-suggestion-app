@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+
+  <h2 class="fw-bold mb-4">Recipe Details</h2>
+
+  <div class="card bg-dark border-secondary shadow-sm">
+    <div class="card-body">
+
+      <h3 id="recipeName" class="mb-3"></h3>
+
+      <p><strong>Category:</strong> <span id="recipeCategory"></span></p>
+      <p><strong>Area:</strong> <span id="recipeArea"></span></p>
+
+      <h5 class="mt-4">Ingredients Required:</h5>
+      <ul id="ingredientList"></ul>
+
+      <h5 class="mt-4">Your Ingredients:</h5>
+      <p id="yourIngredients"></p>
+
+      <h5 class="mt-4">Match Score:</h5>
+      <p id="matchScore" class="fw-bold text-info"></p>
+
+      <h5 class="mt-4">Missing Ingredients:</h5>
+      <ul id="missingIngredients"></ul>
+
+      <h5 class="mt-4">Replacement Suggestions:</h5>
+      <ul id="replacementList"></ul>
+
+      <h5 class="mt-4">Instructions:</h5>
+      <p id="instructions"></p>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  async function loadRecipe() {
+    const urlParts = window.location.pathname.split("/");
+    const meal_id = urlParts[urlParts.length - 1];
+
+    const params = new URLSearchParams(window.location.search);
+    const user_ing = params.get("user_ingredients") || "";
+
+    const apiUrl = `http://127.0.0.1:8000/recipe/${meal_id}?user_ingredients=${user_ing}`;
+
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    document.getElementById("recipeName").textContent = data.recipe_name;
+    document.getElementById("recipeCategory").textContent = data.category;
+    document.getElementById("recipeArea").textContent = data.area;
+
+    document.getElementById("instructions").textContent = data.instructions;
+
+    document.getElementById("matchScore").textContent = data.match_score + "%";
+    document.getElementById("yourIngredients").textContent = data.your_ingredients.join(", ");
+
+    const list1 = document.getElementById("ingredientList");
+    list1.innerHTML = "";
+    data.ingredients_required.forEach(i => {
+      list1.innerHTML += `<li>${i}</li>`;
+    });
+
+    const missingList = document.getElementById("missingIngredients");
+    missingList.innerHTML = "";
+    data.missing_ingredients.forEach(i => {
+      missingList.innerHTML += `<li>${i}</li>`;
+    });
+
+    const replList = document.getElementById("replacementList");
+    replList.innerHTML = "";
+    Object.entries(data.replacement_suggestions).forEach(([item, repl]) => {
+      replList.innerHTML += `<li>${item}: ${repl.join(", ")}</li>`;
+    });
+  }
+
+  loadRecipe();
+</script>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h3 class="text-center mb-4">Recommend Recipes</h3>
+
+        <form id="recommendForm">
+            <div class="mb-3">
+                <label class="form-label">Your Ingredients</label>
+                <input type="text" class="form-control" id="ingredientsInput" placeholder="e.g. egg, rice, salt">
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Get Recommendations</button>
+            </div>
+        </form>
+
+        <hr class="my-4">
+
+        <div id="results"></div>
+    </div>
+</div>
+
+<script>
+document.getElementById("recommendForm").addEventListener("submit", async function(event){
+    event.preventDefault();
+
+    const ingredients = document.getElementById("ingredientsInput").value.split(",").map(i => i.trim());
+
+    const response = await fetch("http://localhost:8000/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_ingredients: ingredients })
+    });
+
+    const data = await response.json();
+
+    let html = "";
+    data.recommendations.forEach(rec => {
+        html += `
+            <div class="border p-3 rounded mb-3">
+                <h5>${rec.recipe_name}</h5>
+                <p><strong>Category:</strong> ${rec.category}</p>
+                <p><strong>Area:</strong> ${rec.area}</p>
+                <p><strong>Match Score:</strong> ${rec.match_score}%</p>
+
+                <strong>Missing Ingredients:</strong>
+                <ul>
+                    ${rec.missing_ingredients.map(i => `<li>${i}</li>`).join("")}
+                </ul>
+
+                <strong>Replacement Suggestions:</strong>
+                <ul>
+                    ${Object.entries(rec.replacement_suggestions)
+                        .map(([k, v]) => `<li>${k}: ${v.join(", ")}</li>`)
+                        .join("")}
+                </ul>
+            </div>
+        `;
+    });
+
+    document.getElementById("results").innerHTML = html;
+});
+</script>
+{% endblock %}
